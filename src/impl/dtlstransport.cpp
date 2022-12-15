@@ -329,7 +329,7 @@ int DtlsTransport::TimeoutCallback(gnutls_transport_ptr_t ptr, unsigned int ms) 
 	DtlsTransport *t = static_cast<DtlsTransport *>(ptr);
 	try {
 		bool isReadable = t->mIncomingQueue.wait(
-		    ms != GNUTLS_INDEFINITE_TIMEOUT ? std::make_optional(milliseconds(ms)) : nullopt);
+		    ms != GNUTLS_INDEFINITE_TIMEOUT ? std::make_optional(milliseconds(ms)) : nullopt); // TODO
 		return isReadable ? 1 : 0;
 
 	} catch (const std::exception &e) {
@@ -539,7 +539,7 @@ void DtlsTransport::runRecvLoop() {
 		byte buffer[bufferSize];
 		while (mIncomingQueue.running()) {
 			// Process pending messages
-			while (auto next = mIncomingQueue.tryPop()) {
+			while (auto next = mIncomingQueue.pop()) {
 				message_ptr message = std::move(*next);
 				if (demuxMessage(message))
 					continue;
@@ -597,7 +597,7 @@ void DtlsTransport::runRecvLoop() {
 				}
 			}
 
-			mIncomingQueue.wait(duration);
+			mIncomingQueue.wait(duration); // TODO
 		}
 	} catch (const std::exception &e) {
 		PLOG_ERROR << "DTLS recv: " << e.what();
